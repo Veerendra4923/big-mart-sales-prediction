@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Big Mart Sales Forecasting Using Machine Learning</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Body Styles */
+        body {
+            /* Background image is now handled by JavaScript */
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+            font-family: 'Poppins', 'Arial', sans-serif;
+            color: #333;
+            margin-top: 50px;
+            min-height: 100vh;
+            position: relative;
+            transition: opacity 1.5s ease; /* Smooth transition for opacity changes */
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+             /* Darker overlay for better readability */
+            z-index: -1;
+            transition: background 1s ease; /* Smooth transition for the overlay */
+        }
+
+        /* Container */
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            max-width: 1000px;
+            margin: 40px auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(to bottom, #3f51b5, #00bcd4);
+        }
+
+        /* Header Styles */
+        h1, h2 {
+            font-weight: 700;
+        }
+
+        h1.text-custom {
+            color: #1a237e;
+            font-size: 32px;
+            letter-spacing: 1px;
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h1.text-custom::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #3f51b5, #00bcd4);
+            border-radius: 2px;
+        }
+
+        h2.text-custom {
+            color: #3f51b5;
+            font-size: 24px;
+        }
+
+        /* Form Styles */
+        .form-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control-dark {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #555;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .form-control-dark:focus {
+            border-color: #3f51b5;
+            box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2);
+            background-color: #fff;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #3f51b5, #00bcd4);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 12px 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #303f9f, #0097a7);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0, 188, 212, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150%;
+            height: 150%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease-out;
+        }
+
+        .btn-primary:hover::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        /* Model selector styles */
+        #model_selection {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .model-badge {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: linear-gradient(135deg, #3f51b5, #00bcd4);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Prediction result styles */
+        .prediction-container {
+            background: linear-gradient(135deg, #f5f7fa, #e4eaec);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #3f51b5;
+        }
+
+        .text-info {
+            background: linear-gradient(135deg, #3f51b5, #00bcd4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        /* Form field animations */
+        .form-control-dark, select.form-control-dark {
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .form-control-dark:focus, select.form-control-dark:focus {
+            transform: translateY(-3px);
+        }
+
+        /* Icons for form fields */
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+        }
+
+        /* Media Queries for Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 20px;
+            }
+
+            .btn-primary {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+
+            h1.text-custom {
+                font-size: 24px;
+            }
+
+            h2.text-custom {
+                font-size: 20px;
+            }
+            
+            .text-info {
+                font-size: 28px;
+            }
+        }
+
+        /* Form Group Styling */
+        .row.g-3 {
+            margin-bottom: 10px;
+        }
+
+        /* Placeholder Styles */
+        ::placeholder {
+            color: #aaa;
+            opacity: 0.7;
+        }
+        
+        /* Floating labels effect */
+        .form-floating {
+            position: relative;
+        }
+        
+        .form-floating label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            padding: 1rem 0.75rem;
+            pointer-events: none;
+            border: 1px solid transparent;
+            transform-origin: 0 0;
+            transition: opacity .1s ease-in-out,transform .1s ease-in-out;
+        }
+        
+        /* Loader animation for prediction */
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 5px solid rgba(63, 81, 181, 0.2);
+            border-radius: 50%;
+            border-top-color: #3f51b5;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center text-custom">Big Mart Sales Forecasting Using Machine Learning</h1>
+        <div class="card text-dark border-0">
+            <div class="card-body">
+                <form action="/predict" method="post" id="prediction-form">
+                    <!-- Model Selection Dropdown -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label for="model_selection" class="form-label">
+                                <i class="fas fa-brain me-2"></i>Select Model
+                            </label>
+                            <select class="form-control form-control-dark" name="model_selection" id="model_selection">
+                                <option value="linear" {% if selected_model == "linear" %} selected {% endif %}>Linear Regression</option>
+                                <option value="polynomial" {% if selected_model == "polynomial" %} selected {% endif %}>Polynomial Regression</option>
+                                <option value="ridge" {% if selected_model == "ridge" %} selected {% endif %}>Ridge Regression</option>
+                                <option value="random_forest" {% if selected_model == "random_forest" %} selected {% endif %}>Random Forest</option>
+                                <option value="gradient_boosting" {% if selected_model == "gradient_boosting" %} selected {% endif %}>Gradient Boosting</option>
+                                <option value="catboost" {% if selected_model == "catboost" %} selected {% endif %}>CatBoost</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="Item_Identifier" class="form-label">
+                                <i class="fas fa-barcode me-2"></i>Item Identifier
+                            </label>
+                            <input type="number" step="any" class="form-control form-control-dark" name="Item_Identifier" 
+                                placeholder="Enter Item Identifier" value="{{ request.form['Item_Identifier'] if request.form['Item_Identifier'] is not none else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Item_weight" class="form-label">
+                                <i class="fas fa-weight me-2"></i>Item Weight
+                            </label>
+                            <input type="number" step="any" class="form-control form-control-dark" name="Item_weight" 
+                                placeholder="Enter Item Weight" value="{{ request.form.get('Item_weight', '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Outlet_size" class="form-label">
+                                <i class="fas fa-store me-2"></i>Outlet Size
+                            </label>
+                            <select class="form-control form-control-dark" name="Outlet_size">
+                                <option value="0" {% if request.form.get('Outlet_size') == "0" %} selected {% endif %}>Small</option>
+                                <option value="1" {% if request.form.get('Outlet_size') == "1" %} selected {% endif %}>Medium</option>
+                                <option value="2" {% if request.form.get('Outlet_size') == "2" %} selected {% endif %}>High</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Item_Fat_Content" class="form-label">
+                                <i class="fas fa-bacon me-2"></i>Item Fat Content
+                            </label>
+                            <select class="form-control form-control-dark" name="Item_Fat_Content">
+                                <option value="0" {% if request.form.get('Item_Fat_Content') == "0" %} selected {% endif %}>Low</option>
+                                <option value="1" {% if request.form.get('Item_Fat_Content') == "1" %} selected {% endif %}>Regular</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Item_visibility" class="form-label">
+                                <i class="fas fa-eye me-2"></i>Item Visibility
+                            </label>
+                            <input type="number" step="any" class="form-control form-control-dark" name="Item_visibility" 
+                                placeholder="Enter Item Visibility" value="{{ request.form.get('Item_visibility', '') }}">
+                        </div>
+                        <!-- Item Type -->
+                        <div class="col-md-6">
+                            <label for="Item_Type" class="form-label">
+                                <i class="fas fa-tags me-2"></i>Item Type
+                            </label>
+                            <select class="form-control form-control-dark" name="Item_Type">
+                                {% for i, item in [(0, 'Dairy'), (1, 'Soft Drinks'), (2, 'Meat'), (3, 'Fruits and Vegetables'), (4, 'Household'), (5, 'Snacks Foods'), (6, 'Baking Goods'), (7, 'Personal Care'), (8, 'Breakfast'), (9, 'Frozen Food'), (10, 'Starchy Foods'), (11, 'Canned'), (12, 'Beverages'), (13, 'Health and Hygiene'), (14, 'Hard Drinks'), (15, 'Breads'), (16, 'Seafood') ] %}
+                                    <option value="{{ i }}" {% if request.form.get('Item_Type') == i|string %} selected {% endif %}>{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Item_MPR" class="form-label">
+                                <i class="fas fa-dollar-sign me-2"></i>Item MPR
+                            </label>
+                            <input type="number" step="any" class="form-control form-control-dark" name="Item_MPR" 
+                                placeholder="Enter Item MPR" value="{{ request.form.get('Item_MPR', '') }}">
+                        </div>
+                        <!-- Outlet Identifier -->
+                        <div class="col-md-6">
+                            <label for="Outlet_identifier" class="form-label">
+                                <i class="fas fa-id-card me-2"></i>Outlet Identifier
+                            </label>
+                            <select class="form-control form-control-dark" name="Outlet_identifier">
+                                {% for i in range(1, 11) %}
+                                    <option value="{{ i }}" {% if request.form.get('Outlet_identifier') == i|string %} selected {% endif %}>Outlet {{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Outlet_established_year" class="form-label">
+                                <i class="fas fa-calendar-alt me-2"></i>Outlet Established Year
+                            </label>
+                            <input type="number" class="form-control form-control-dark" name="Outlet_established_year" id="Outlet_established_year" 
+                                placeholder="Enter Outlet Established Year" max="2050" oninput="validateYear()" value="{{ request.form.get('Outlet_established_year', '') }}">
+                            <small id="yearError" class="text-danger" style="display: none;">Cannot predict year beyond 2050.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Outlet_location_type" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>Outlet Location Type
+                            </label>
+                            <select class="form-control form-control-dark" name="Outlet_location_type">
+                                <option value="0" {% if request.form.get('Outlet_location_type') == "0" %} selected {% endif %}>Tier 1</option>
+                                <option value="1" {% if request.form.get('Outlet_location_type') == "1" %} selected {% endif %}>Tier 2</option>
+                                <option value="2" {% if request.form.get('Outlet_location_type') == "2" %} selected {% endif %}>Tier 3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="Outlet_type" class="form-label">
+                                <i class="fas fa-shopping-cart me-2"></i>Outlet Type
+                            </label>
+                            <select class="form-control form-control-dark" name="Outlet_type">
+                                <option value="0" {% if request.form.get('Outlet_type') == "0" %} selected {% endif %}>Supermarket Type 1</option>
+                                <option value="1" {% if request.form.get('Outlet_type') == "1" %} selected {% endif %}>Supermarket Type 2</option>
+                                <option value="2" {% if request.form.get('Outlet_type') == "2" %} selected {% endif %}>Grocery Store</option>
+                                <option value="3" {% if request.form.get('Outlet_type') == "3" %} selected {% endif %}>Supermarket Type 3</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 mt-4" onclick="showLoader()">
+                                <i class="fas fa-chart-line me-2"></i>Predict Sales
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                {% if prediction %}
+                    <div class="prediction-container mt-4 position-relative">
+                        <h2 class="text-custom mb-3">Predicted Sales:</h2>
+                        <div class="loader" id="prediction-loader"></div>
+                        <h3 class="text-info">{{ prediction }}</h3>
+                        {% if selected_model %}
+                            <span class="model-badge">
+                                <i class="fas fa-robot me-1"></i> Model: 
+                                {% if selected_model == "linear" %}Linear Regression
+                                {% elif selected_model == "polynomial" %}Polynomial Regression
+                                {% elif selected_model == "ridge" %}Ridge Regression
+                                {% elif selected_model == "random_forest" %}Random Forest
+                                {% elif selected_model == "gradient_boosting" %}Gradient Boosting
+                                {% elif selected_model == "catboost" %}CatBoost
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+        function validateYear() {
+            var yearInput = document.getElementById('Outlet_established_year');
+            var errorMessage = document.getElementById('yearError');
+            
+            if (yearInput.value > 2050) {
+                errorMessage.style.display = 'block';  // Show the error message
+                yearInput.setCustomValidity("Cannot predict year beyond 2050.");  // Set custom validation message
+            } else {
+                errorMessage.style.display = 'none';  // Hide the error message
+                yearInput.setCustomValidity("");  // Reset validation
+            }
+        }
+        
+        function showLoader() {
+            var form = document.getElementById('prediction-form');
+            if (form.checkValidity()) {
+                var loader = document.getElementById('prediction-loader');
+                if (loader) {
+                    loader.style.display = 'block';
+                }
+            }
+        }
+        
+        // Add form field animation
+        const formFields = document.querySelectorAll('.form-control-dark');
+        formFields.forEach(field => {
+            field.addEventListener('focus', () => {
+                field.parentElement.classList.add('focused');
+            });
+            field.addEventListener('blur', () => {
+                field.parentElement.classList.remove('focused');
+            });
+        });
+        
+        // Live changing background implementation
+        const backgroundImages = [
+            'https://images.unsplash.com/photo-1534723328310-e82dad3ee43f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80',
+            'https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80',
+            'https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80',
+            'https://images.unsplash.com/photo-1604719312566-8912e9c8a213?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80',
+            'https://images.unsplash.com/photo-1601599963565-b7f49d6cf457?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80'
+        ];
+
+        let currentBackgroundIndex = 0;
+
+        // Function to change the background with smooth transition
+        function changeBackground() {
+            // Create a new image to preload
+            const nextImage = new Image();
+            nextImage.src = backgroundImages[(currentBackgroundIndex + 1) % backgroundImages.length];
+            
+            // Once next image is loaded, perform the transition
+            nextImage.onload = function() {
+                // Fade out current background
+                document.body.style.opacity = '0.8';
+                
+                setTimeout(() => {
+                    // Update background image
+                    currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
+                    document.body.style.backgroundImage = `url('${backgroundImages[currentBackgroundIndex]}')`;
+                    
+                    // Fade in new background
+                    setTimeout(() => {
+                        document.body.style.opacity = '1';
+                    }, 300);
+                }, 700);
+            };
+        }
+
+        // Set initial background
+        document.body.style.backgroundImage = `url('${backgroundImages[currentBackgroundIndex]}')`;
+        document.body.style.transition = 'opacity 0.7s ease-in-out, background-image 0.5s ease-in-out';
+
+        // Change background every 10 seconds
+        setInterval(changeBackground, 10000);
+
+        // Start the background transition when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply transition styles
+            const currentBodyStyle = getComputedStyle(document.body);
+            document.body.style.transition = `${currentBodyStyle.transition}, background-image 1.5s ease-in-out`;
+            
+            // Initialize with first background
+            document.body.style.backgroundImage = `url('${backgroundImages[0]}')`;
+        });
+    </script>
+</body>
+</html>
